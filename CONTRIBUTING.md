@@ -6,6 +6,10 @@ PRs welcome. `node test/detector.test.js && node test/merge.test.js` must
 pass; CI also syntax-checks every source file. Detector tuning PRs should
 include fixtures demonstrating the change.
 
+Any PR that touches extension runtime files (`manifest.json`, `src/`,
+`popup/`, `icons/`) must bump `"version"` in `manifest.json` — CI enforces
+this. List-only PRs (`exports/`, `appeals.json`) don't need a bump.
+
 ## List entries
 
 Read [docs/LIST_FORMAT.md](docs/LIST_FORMAT.md) first — it defines the

@@ -27,6 +27,33 @@ jobs:
           for f in src/*.js popup/popup.js tools/*.js; do node --check "$f"; done
           python3 -c "import json; json.load(open('manifest.json'))"
 
+  version-bump:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require manifest version bump when extension code changes
+        run: |
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          BASE="origin/${{ github.base_ref }}"
+          CHANGED=$(git diff --name-only "$BASE"...HEAD)
+          echo "Changed files:"; echo "$CHANGED"
+          if echo "$CHANGED" | grep -qE '^(manifest\.json|src/|popup/|icons/)'; then
+            OLD=$(git show "$BASE:manifest.json" | python3 -c "import json,sys; print(json.load(sys.stdin)['version'])")
+            NEW=$(python3 -c "import json; print(json.load(open('manifest.json'))['version'])")
+            if [ "$OLD" = "$NEW" ]; then
+              echo "::error::Extension files changed but manifest.json version is still $OLD — bump it."
+              exit 1
+            fi
+            if [ "$(printf '%s\n%s\n' "$OLD" "$NEW" | sort -V | tail -1)" != "$NEW" ]; then
+              echo "::error::New version $NEW is not greater than base version $OLD."
+              exit 1
+            fi
+            echo "Version bump OK: $OLD -> $NEW"
+          else
+            echo "No extension runtime files changed — version bump not required."
+          fi
+
   publish-list:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: test
