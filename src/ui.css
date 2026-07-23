@@ -5,16 +5,29 @@ article[data-testid='tweet'].slopf-flagged {
   position: relative;
 }
 
-article[data-testid='tweet'].slopf-mild {
-  box-shadow: inset 2px 0 0 0 rgba(216, 160, 26, 0.7);
+/* Edge line as an overlay pseudo-element so X's hover background (painted
+   by a child div) can't cover it. */
+article[data-testid='tweet'].slopf-flagged::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  z-index: 15;
+  pointer-events: none;
 }
 
-article[data-testid='tweet'].slopf-severe {
-  box-shadow: inset 2px 0 0 0 rgba(224, 36, 94, 0.8);
+article[data-testid='tweet'].slopf-mild::before {
+  background: rgba(216, 160, 26, 0.7);
 }
 
-article[data-testid='tweet'].slopf-listed {
-  box-shadow: inset 2px 0 0 0 rgba(120, 86, 255, 0.8);
+article[data-testid='tweet'].slopf-severe::before {
+  background: rgba(224, 36, 94, 0.8);
+}
+
+article[data-testid='tweet'].slopf-listed::before {
+  background: rgba(120, 86, 255, 0.8);
 }
 
 article[data-testid='tweet'].slopf-acted {
