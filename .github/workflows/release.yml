@@ -36,6 +36,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          {
+            echo "**⬇️ Install:** download \`slop-filter-for-x-${GITHUB_REF_NAME#v}.zip\` below, unzip, and load it via chrome://extensions → Load unpacked."
+            echo
+            echo "_The \"Source code\" archives are GitHub's automatic full-repo snapshots (tests, docs, tooling) — not the extension bundle._"
+            echo
+          } > /tmp/notes-header.md
+          # --notes-file + --generate-notes: our header first, auto-notes appended
           gh release create "$GITHUB_REF_NAME" dist/*.zip \
             --title "Slop Filter for X $GITHUB_REF_NAME" \
-            --generate-notes
+            --generate-notes \
+            --notes-file /tmp/notes-header.md
