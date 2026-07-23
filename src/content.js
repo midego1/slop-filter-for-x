@@ -225,18 +225,11 @@
     card.append(why, actions);
     chip.append(pill, card);
 
-    // Inline next to the date in the header row; article-level float only in
-    // collapse mode (the header gets hidden there, the floating chip doesn't).
-    const headerRow = article.querySelector('div[data-testid="User-Name"]');
+    // Anchored top-right, left of X's Grok/⋯ icons — a fixed zone in every
+    // tweet variant, and absolute positioning never disturbs X's layout.
+    article.append(chip);
     if (settings.collapse && severity === 'severe') {
-      chip.classList.add('slopf-float');
-      article.append(chip);
       article.classList.add('slopf-collapsed');
-    } else if (headerRow) {
-      headerRow.append(chip);
-    } else {
-      chip.classList.add('slopf-float');
-      article.append(chip);
     }
   }
 

@@ -1,0 +1,31 @@
+name: Appeal a listing
+description: Request removal of an account from the community list
+title: "appeal: @HANDLE"
+labels: [appeal]
+body:
+  - type: input
+    id: handle
+    attributes:
+      label: X handle
+      description: The listed account this appeal is about (without the @)
+      placeholder: example_handle
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why should this account be delisted?
+      description: >
+        Link to posts showing genuine human activity, or explain why the
+        listing is wrong. A maintainer adds accepted appeals to appeals.json;
+        the next CI run removes the account from master-list.json and
+        subscribers pick it up within ~6 hours.
+    validations:
+      required: true
+  - type: checkboxes
+    id: relation
+    attributes:
+      label: Relationship
+      options:
+        - label: I am the account owner
+        - label: I am appealing on someone else's behalf

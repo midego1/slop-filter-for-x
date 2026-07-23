@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Slop Filter for X",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Highlights AI-generated slop in your X timeline and (optionally) blocks the accounts posting it.",
   "permissions": [
     "storage",
