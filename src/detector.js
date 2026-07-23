@@ -195,6 +195,14 @@
       reasons.push({ id: rule.id, label: rule.label, hits, points });
     }
 
+    // A handle tell alone is a prior, not evidence — plenty of humans put
+    // "ai" in their handle because they talk about AI. It only counts when
+    // at least one text-based signal corroborates it.
+    if (reasons.length === 1 && reasons[0].id === 'ai-disclosure') {
+      total -= reasons[0].points;
+      reasons.length = 0;
+    }
+
     // Very short posts don't carry enough signal to judge on style alone.
     if (wordCount(raw) < 12) {
       const strong = reasons.some((r) => ['leaked-assistant', 'prompt-residue', 'generic-praise'].includes(r.id));

@@ -130,13 +130,20 @@ const SLOP = [
       'This is the​ secret​ most​ people​ never​ tell​ you​ about​ growing​ an​ audience​ fast.'
   },
   {
-    label: 'AI-flagged handle generic post',
-    text: 'Just dropped a new post about productivity, check it out and let me know your thoughts!',
+    label: 'AI handle corroborated by bait text',
+    text: 'Just dropped a new post about productivity 🚀 Bookmark this, you\'re welcome. Follow for more.',
     ctx: { handle: 'growth_gpt_23' }
   }
 ];
 
 const HUMAN = [
+  {
+    // Regression: real account @ai_for_success (human AI-news poster) was
+    // flagged at exactly 40 by the handle rule alone.
+    label: 'human with ai in handle, normal text',
+    text: 'Google just shipped a new Gemini update, thread with my testing notes coming later today',
+    ctx: { handle: 'ai_for_success' }
+  },
   {
     label: 'casual shitpost',
     text: 'why is my cat sitting in the sink again. she does this every single day and I cannot stop her'
