@@ -1,9 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Slop Filter for X",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Highlights AI-generated slop in your X timeline and (optionally) blocks the accounts posting it.",
-  "permissions": ["storage", "alarms"],
+  "permissions": [
+    "storage",
+    "alarms"
+  ],
   "host_permissions": [
     "https://x.com/*",
     "https://twitter.com/*",
@@ -30,9 +33,19 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://x.com/*", "https://twitter.com/*"],
-      "js": ["src/detector.js", "src/tags.js", "src/api.js", "src/content.js"],
-      "css": ["src/ui.css"],
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": [
+        "src/detector.js",
+        "src/tags.js",
+        "src/api.js",
+        "src/content.js"
+      ],
+      "css": [
+        "src/ui.css"
+      ],
       "run_at": "document_idle"
     }
   ]

@@ -152,7 +152,7 @@
         : 'mild';
     article.classList.add('slopf-' + severity);
 
-    const chip = document.createElement('div');
+    const chip = document.createElement('span');
     chip.className = 'slopf-chip';
 
     const pill = document.createElement('button');
@@ -164,7 +164,18 @@
       e.stopPropagation();
       e.preventDefault();
       article.classList.remove('slopf-collapsed');
-      chip.classList.toggle('slopf-open');
+      const opening = !chip.classList.contains('slopf-open');
+      closeAllChips();
+      if (opening) {
+        chip.classList.add('slopf-open');
+        // Fixed positioning so no X container can clip the card.
+        const r = pill.getBoundingClientRect();
+        const card = chip.querySelector('.slopf-card');
+        const vw = window.innerWidth || document.documentElement.clientWidth;
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        card.style.left = Math.max(8, Math.min(r.left, vw - 258)) + 'px';
+        card.style.top = Math.max(8, Math.min(r.bottom + 6, vh - 130)) + 'px';
+      }
     };
 
     const card = document.createElement('div');
@@ -213,12 +224,28 @@
     actions.append(act, ignore);
     card.append(why, actions);
     chip.append(pill, card);
-    article.append(chip);
 
+    // Inline next to the date in the header row; article-level float only in
+    // collapse mode (the header gets hidden there, the floating chip doesn't).
+    const headerRow = article.querySelector('div[data-testid="User-Name"]');
     if (settings.collapse && severity === 'severe') {
+      chip.classList.add('slopf-float');
+      article.append(chip);
       article.classList.add('slopf-collapsed');
+    } else if (headerRow) {
+      headerRow.append(chip);
+    } else {
+      chip.classList.add('slopf-float');
+      article.append(chip);
     }
   }
+
+  function closeAllChips() {
+    document.querySelectorAll('.slopf-chip.slopf-open').forEach((c) => c.classList.remove('slopf-open'));
+  }
+
+  document.addEventListener('scroll', closeAllChips, true);
+  document.addEventListener('click', closeAllChips);
 
   function allow(handle) {
     return withStore(

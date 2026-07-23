@@ -24,11 +24,20 @@ article[data-testid='tweet'].slopf-acted {
 /* --- corner chip ------------------------------------------------------- */
 
 .slopf-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  vertical-align: middle;
+  font: 500 11px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Collapse-mode / fallback variant: floats at the article corner instead. */
+.slopf-chip.slopf-float {
   position: absolute;
   bottom: 6px;
-  left: 16px; /* under the avatar column — empty space on X's layout */
+  left: 16px;
+  margin-left: 0;
   z-index: 20;
-  font: 500 11px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }
 
 .slopf-pill {
@@ -64,9 +73,8 @@ article[data-testid='tweet'].slopf-acted {
 
 .slopf-card {
   display: none;
-  position: absolute;
-  bottom: 26px; /* opens upward from the bottom-anchored pill */
-  left: 0;
+  position: fixed; /* JS sets top/left from the pill; immune to X's overflow clipping */
+  z-index: 2147483647;
   width: 250px;
   padding: 10px 12px;
   border-radius: 12px;
