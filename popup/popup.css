@@ -51,6 +51,35 @@ h1 {
   color: var(--muted);
 }
 
+.health {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.health .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+
+.health[data-state='ok'] .dot {
+  background: #17bf63;
+}
+
+.health[data-state='bad'] .dot {
+  background: var(--accent);
+}
+
+.health[data-state='bad'] {
+  color: var(--accent);
+}
+
 .tabs {
   display: flex;
   gap: 4px;

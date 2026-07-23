@@ -62,6 +62,8 @@
     logList: $('log-list'),
     logEmpty: $('log-empty'),
     status: $('status'),
+    health: $('health'),
+    healthText: $('health-text'),
     tabButtons: [...document.querySelectorAll('nav.tabs button[data-tab]')]
   };
 
@@ -264,6 +266,34 @@
       setStatus(resp && resp.ok ? 'Lists refreshed' : (resp && resp.error) || 'Refresh failed');
     });
   });
+
+  /* -------------------------------------------------------------- health */
+
+  function setHealth(state, text) {
+    els.health.dataset.state = state; // 'ok' | 'bad' | 'off'
+    els.healthText.textContent = text;
+  }
+
+  async function checkHealth() {
+    const tab = await findXTab();
+    if (!tab) {
+      setHealth('off', 'No x.com tab open');
+      return;
+    }
+    chrome.tabs.sendMessage(tab.id, { type: 'slopf-ping' }, (resp) => {
+      if (chrome.runtime.lastError || !resp || !resp.ok) {
+        setHealth(
+          'bad',
+          'Not running on the open x.com tab — reload the tab; if it persists, check chrome://extensions'
+        );
+        return;
+      }
+      setHealth(
+        'ok',
+        `Active on x.com · v${resp.version} · ${resp.enabled ? resp.mode + ' mode' : 'disabled'}`
+      );
+    });
+  }
 
   /* --------------------------------------------------------- x.com bridge */
 
@@ -588,4 +618,5 @@
   });
 
   loadAll();
+  checkHealth();
 })();

@@ -314,6 +314,15 @@
   // The popup has no x.com cookies of its own, so it delegates the actual API
   // calls back to this content script.
   chrome.runtime.onMessage.addListener((msg, _sender, respond) => {
+    if (msg && msg.type === 'slopf-ping') {
+      respond({
+        ok: true,
+        version: chrome.runtime.getManifest().version,
+        enabled: settings.enabled,
+        mode: settings.mode
+      });
+      return;
+    }
     if (!msg || msg.type !== 'slopf-act') return;
     const fn = SlopApi[msg.action];
     if (!fn) {
