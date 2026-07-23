@@ -97,6 +97,20 @@ like the rule-of-three. That's the reason queue mode is the default and auto
 mode is opt-in: you're expected to spot-check the queue before trusting the
 extension to block on your behalf.
 
+## Updating & releases
+
+- **Developing locally (unpacked):** `git pull`, then hit ↻ on the card in
+  `chrome://extensions` and reload any open x.com tab. No build step.
+- **Cutting a release:** bump `"version"` in `manifest.json`, commit, then
+  `git tag v<version> && git push --tags`. CI verifies the tag matches the
+  manifest, runs the test suites, builds the store zip with
+  `tools/package.sh`, and publishes a GitHub Release with the zip attached.
+- **Chrome Web Store (if listed):** upload the same zip from the release to
+  the developer dashboard; users auto-update within hours of review.
+- **Community lists update themselves** — subscriptions refresh every 6
+  hours in the background; no extension update is ever needed for list
+  changes.
+
 ## Community lists
 
 Every block/mute is logged locally with tags describing *why* (`ai-slop`,
