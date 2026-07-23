@@ -168,18 +168,25 @@
       closeAllChips();
       if (opening) {
         chip.classList.add('slopf-open');
-        // Fixed positioning so no X container can clip the card.
+        // Portal the card to <body>: X's virtualized rows have CSS
+        // transforms, which re-anchor position:fixed to the row instead of
+        // the viewport. body has no transforms, so coordinates are true.
         const r = pill.getBoundingClientRect();
-        const card = chip.querySelector('.slopf-card');
         const vw = window.innerWidth || document.documentElement.clientWidth;
         const vh = window.innerHeight || document.documentElement.clientHeight;
-        card.style.left = Math.max(8, Math.min(r.left, vw - 258)) + 'px';
+        document.body.appendChild(card);
+        card.classList.add('slopf-card-open');
+        // Right-align under the pill, dropdown-style.
+        card.style.left = Math.max(8, Math.min(r.right - 250, vw - 258)) + 'px';
         card.style.top = Math.max(8, Math.min(r.bottom + 6, vh - 130)) + 'px';
+        card._chip = chip;
+        openCard = card;
       }
     };
 
     const card = document.createElement('div');
     card.className = 'slopf-card';
+    card.onclick = (e) => e.stopPropagation(); // clicks inside shouldn't close it
 
     const why = document.createElement('div');
     why.className = 'slopf-why';
@@ -217,6 +224,7 @@
       e.stopPropagation();
       e.preventDefault();
       allow(tweet.handle);
+      closeAllChips(); // returns a body-portaled card to the chip first
       article.classList.remove('slopf-flagged', 'slopf-severe', 'slopf-mild', 'slopf-listed', 'slopf-collapsed');
       article.querySelector('.slopf-edge')?.remove();
       chip.remove();
@@ -242,8 +250,16 @@
     }
   }
 
+  let openCard = null;
+
   function closeAllChips() {
     document.querySelectorAll('.slopf-chip.slopf-open').forEach((c) => c.classList.remove('slopf-open'));
+    if (openCard) {
+      openCard.classList.remove('slopf-card-open');
+      // Return the card to its chip so Not-slop/rescan cleanup removes it too.
+      if (openCard._chip) openCard._chip.append(openCard);
+      openCard = null;
+    }
   }
 
   document.addEventListener('scroll', closeAllChips, true);
@@ -388,6 +404,7 @@
   }
 
   function rescan() {
+    closeAllChips();
     document.querySelectorAll('.slopf-chip, .slopf-edge').forEach((b) => b.remove());
     document
       .querySelectorAll('.slopf-flagged')

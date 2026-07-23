@@ -77,9 +77,12 @@ article[data-testid='tweet'].slopf-acted {
 
 .slopf-card {
   display: none;
-  position: fixed; /* JS sets top/left from the pill; immune to X's overflow clipping */
+  /* Portaled to <body> on open — JS sets top/left from the pill's rect.
+     body has no CSS transforms, so fixed means the real viewport. */
+  position: fixed;
   z-index: 2147483647;
   width: 250px;
+  font: 500 11px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   padding: 10px 12px;
   border-radius: 12px;
   background: #1a2129;
@@ -88,7 +91,7 @@ article[data-testid='tweet'].slopf-acted {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
-.slopf-open .slopf-card {
+.slopf-card.slopf-card-open {
   display: block;
 }
 
