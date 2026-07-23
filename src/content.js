@@ -151,6 +151,7 @@
         ? 'severe'
         : 'mild';
     article.classList.add('slopf-' + severity);
+    article.dataset.slopfSeverity = severity; // survives X re-renders that strip classes
 
     const chip = document.createElement('span');
     chip.className = 'slopf-chip';
@@ -223,6 +224,9 @@
     ignore.onclick = (e) => {
       e.stopPropagation();
       e.preventDefault();
+      // Update local settings immediately so the self-heal observer doesn't
+      // re-decorate this article before the storage write round-trips.
+      settings.allowlist = [...new Set([...(settings.allowlist || []), tweet.handle.toLowerCase()])];
       allow(tweet.handle);
       closeAllChips(); // returns a body-portaled card to the chip first
       article.classList.remove('slopf-flagged', 'slopf-severe', 'slopf-mild', 'slopf-listed', 'slopf-collapsed');
@@ -420,14 +424,50 @@
     findOwnHandle();
     scan(document);
 
+    // X's React re-renders rows on hover and other state changes, stripping
+    // injected nodes and classes. The observer both scans new tweets and
+    // self-heals clobbered decorations.
     const obs = new MutationObserver((records) => {
       for (const rec of records) {
+        // Class swap wiped our slopf-* classes but kept our chip → repair
+        // cheaply from the dataset (which class swaps don't touch).
+        if (rec.type === 'attributes') {
+          const a = rec.target;
+          if (
+            a instanceof Element &&
+            a.matches('article[data-testid="tweet"]') &&
+            !a.classList.contains('slopf-flagged') &&
+            a.querySelector(':scope > .slopf-chip')
+          ) {
+            a.classList.add('slopf-flagged', 'slopf-' + (a.dataset.slopfSeverity || 'mild'));
+          }
+          continue;
+        }
         for (const node of rec.addedNodes) {
           if (node.nodeType === 1) scan(node);
         }
+        // Re-render removed our chip/edge entirely → re-process the article.
+        for (const node of rec.removedNodes) {
+          if (node.nodeType !== 1 || !node.classList) continue;
+          if (node.classList.contains('slopf-chip') || node.classList.contains('slopf-edge')) {
+            const article =
+              rec.target instanceof Element ? rec.target.closest('article[data-testid="tweet"]') : null;
+            if (article && article.isConnected && !article.querySelector('.slopf-chip')) {
+              article.querySelectorAll('.slopf-chip, .slopf-edge').forEach((n) => n.remove());
+              article.classList.remove('slopf-flagged', 'slopf-severe', 'slopf-mild', 'slopf-listed', 'slopf-collapsed');
+              seen.delete(article);
+              process(article);
+            }
+          }
+        }
       }
     });
-    obs.observe(document.body, { childList: true, subtree: true });
+    obs.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
 
     // X is a SPA; the profile link only exists once the shell has mounted.
     if (!ownHandle) setTimeout(findOwnHandle, 3000);
