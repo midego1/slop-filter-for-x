@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Slop Filter — local harness</title>
+<link rel="stylesheet" href="../src/ui.css" />
+<style>
+  body { margin: 0; display: flex; gap: 0; font: 15px/1.4 -apple-system, system-ui, sans-serif; background: #fff; color: #0f1419; }
+  #feed { flex: 1; max-width: 620px; border-right: 1px solid #eff3f4; min-height: 100vh; }
+  article[data-testid="tweet"] { padding: 12px 16px; border-bottom: 1px solid #eff3f4; }
+  div[data-testid="User-Name"] { margin-bottom: 4px; }
+  div[data-testid="User-Name"] span { font-weight: 700; }
+  div[data-testid="User-Name"] a { color: #536471; text-decoration: none; margin-left: 6px; font-size: 14px; }
+  div[data-testid="tweetText"] { white-space: pre-wrap; }
+  article a[href*="/status/"] { display: inline-block; margin-top: 6px; color: #536471; font-size: 12px; text-decoration: none; }
+  #panel { width: 380px; padding: 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; box-sizing: border-box; background: #f7f9f9; }
+  #panel h2 { font-size: 14px; margin: 14px 0 6px; }
+  #panel pre { font-size: 11px; background: #fff; border: 1px solid #eff3f4; border-radius: 8px; padding: 8px; overflow-x: auto; max-height: 220px; }
+  #panel button { margin: 2px 4px 2px 0; padding: 5px 10px; font-size: 12px; border-radius: 999px; border: 1px solid #cfd9de; background: #fff; cursor: pointer; }
+  #panel button.on { background: #0f1419; color: #fff; }
+  .hint { font-size: 11px; color: #536471; }
+</style>
+</head>
+<body>
+
+<div id="feed">
+  <!-- X shell: profile link that content.js uses to find the user's own handle -->
+  <a data-testid="AppTabBar_Profile_Link" href="/midego_test" style="display:none">Profile</a>
+
+  <!-- 1: emoji bullet deck + engagement bait — should flag AND queue/act -->
+  <article data-testid="tweet">
+    <div data-testid="User-Name"><span>Growth Guru</span><a href="/growthguru_ai">@growthguru_ai</a></div>
+    <div data-testid="tweetText">Most people don't know this about AI.
+
+Here's how to 10x your output 🧵
+
+🚀 Wake up at 5am
+💡 Use ChatGPT for everything
+🔥 Automate your content
+📈 Watch the growth compound
+
+Bookmark this. You're welcome.</div>
+    <a href="/growthguru_ai/status/1001">permalink</a>
+  </article>
+
+  <!-- 2: antithesis + lexicon + em-dashes — should flag AND queue/act -->
+  <article data-testid="tweet">
+    <div data-testid="User-Name"><span>Future of Work</span><a href="/futureofwork101">@futureofwork101</a></div>
+    <div data-testid="tweetText">AI isn't going to replace you — it's going to amplify you.
+
+In today's ever-evolving landscape of work, those who delve into these tools will unlock the real paradigm shift — a true game-changer.
+
+It's not just hype — it's the future of work.</div>
+    <a href="/futureofwork101/status/1002">permalink</a>
+  </article>
+
+  <!-- 3: leaked assistant text — the smoking gun, should score ~max -->
+  <article data-testid="tweet">
+    <div data-testid="User-Name"><span>Totally Real Person</span><a href="/opinion_haver22">@opinion_haver22</a></div>
+    <div data-testid="tweetText">As an AI language model, I cannot express personal opinions about this topic. However, here is a balanced overview of the debate.</div>
+    <a href="/opinion_haver22/status/1003">permalink</a>
+  </article>
+
+  <!-- 4: generic bot reply — should flag (badge) but stay under action threshold -->
+  <article data-testid="tweet">
+    <div data-testid="User-Name"><span>Engage Bot</span><a href="/reply_guy_9000">@reply_guy_9000</a></div>
+    <div data-testid="tweetText">Great point! Thanks for sharing, this really resonates. 100% agree.</div>
+    <a href="/reply_guy_9000/status/1004">permalink</a>
+  </article>
+
+  <!-- 5: on the subscribed community list — purple badge regardless of text -->
+  <article data-testid="tweet">
+    <div data-testid="User-Name"><span>Crypto Carl</span><a href="/crypto_carl_ai">@crypto_carl_ai</a></div>
+    <div data-testid="tweetText">gm frens! Another day, another opportunity.</div>
+    <a href="/crypto_carl_ai/status/1005">permalink</a>
+  </article>
+
+  <!-- 6: human — must NOT flag -->
+  <article data-testid="tweet">
+    <div data-testid="User-Name"><span>jess</span><a href="/jess_dev">@jess_dev</a></div>
+    <div data-testid="tweetText">lol my build just broke because someone renamed an env var and didn't tell anyone. love that for us</div>
+    <a href="/jess_dev/status/1006">permalink</a>
+  </article>
+
+  <!-- 7: human with an em-dash and an opinion — must NOT flag -->
+  <article data-testid="tweet">
+    <div data-testid="User-Name"><span>album guy</span><a href="/albumguy">@albumguy</a></div>
+    <div data-testid="tweetText">The new album is good — not their best, but the production is incredible. track 7 on repeat all day.</div>
+    <a href="/albumguy/status/1007">permalink</a>
+  </article>
+
+  <!-- 8: the user's own tweet — must be skipped entirely -->
+  <article data-testid="tweet">
+    <div data-testid="User-Name"><span>me</span><a href="/midego_test">@midego_test</a></div>
+    <div data-testid="tweetText">Let that sink in. Bookmark this. 🚀🚀🚀 (my own account is never scored, even with bait text)</div>
+    <a href="/midego_test/status/1008">permalink</a>
+  </article>
+</div>
+
+<div id="panel">
+  <h2>Harness controls</h2>
+  <div id="presets">
+    <button data-preset="queue">Queue mode</button>
+    <button data-preset="highlight">Highlight only</button>
+    <button data-preset="auto">Auto (limit 2/h)</button>
+  </div>
+  <p class="hint">Presets reload the page with those settings. Auto preset proves the rate limiter: 3+ tweets clear the action threshold but only 2 API calls may fire.</p>
+  <button id="add-tweet">Add slop tweet dynamically</button>
+  <p class="hint">Tests the MutationObserver path (X renders tweets as you scroll).</p>
+
+  <h2>Mock API calls (would-be blocks/mutes)</h2>
+  <pre id="api-calls">[]</pre>
+
+  <h2>chrome.storage.local</h2>
+  <pre id="storage-dump"></pre>
+</div>
+
+<script>
+/* ---- chrome.* shim: in-memory storage + onChanged, defined before any
+   extension script loads. Mirrors the callback semantics content.js uses. ---- */
+(function () {
+  'use strict';
+  const preset = JSON.parse(localStorage.getItem('slopf-harness-preset') || '{}');
+  const data = {
+    settings: Object.assign(
+      {
+        enabled: true, highlightThreshold: 40, actionThreshold: 65,
+        mode: 'queue', action: 'block', collapse: false, allowlist: [],
+        maxActionsPerHour: 15, listUrls: [], listMode: 'highlight'
+      },
+      preset
+    ),
+    stats: { scanned: 0, flagged: 0, acted: 0 },
+    queue: [], log: [], actionTimes: [],
+    listIndex: { crypto_carl_ai: { tags: ['engagement-bait', 'ai-slop'], lists: ['demo list'] } }
+  };
+  const listeners = [];
+  window.chrome = {
+    storage: {
+      local: {
+        _data: data,
+        get(keys, cb) {
+          const out = {};
+          (Array.isArray(keys) ? keys : [keys]).forEach((k) => {
+            if (k in data) out[k] = JSON.parse(JSON.stringify(data[k]));
+          });
+          setTimeout(() => cb(out), 0);
+        },
+        set(obj, cb) {
+          const changes = {};
+          for (const k of Object.keys(obj)) {
+            changes[k] = { oldValue: data[k], newValue: obj[k] };
+            data[k] = JSON.parse(JSON.stringify(obj[k]));
+          }
+          setTimeout(() => {
+            if (cb) cb();
+            listeners.forEach((f) => f(changes, 'local'));
+          }, 0);
+        }
+      },
+      onChanged: { addListener: (f) => listeners.push(f) }
+    },
+    runtime: {
+      onMessage: { addListener() {} },
+      sendMessage() {},
+      lastError: null
+    }
+  };
+})();
+</script>
+
+<!-- The actual production scripts, same load order as the manifest -->
+<script src="../src/detector.js"></script>
+<script src="../src/tags.js"></script>
+<script src="../src/api.js"></script>
+<script>
+/* Replace the real X API with a recorder — nothing leaves this page. */
+window.__apiCalls = [];
+self.SlopApi = {
+  block: async (h) => { window.__apiCalls.push({ action: 'block', handle: h }); },
+  mute: async (h) => { window.__apiCalls.push({ action: 'mute', handle: h }); },
+  unblock: async () => {}, unmute: async () => {}
+};
+</script>
+<script src="../src/content.js"></script>
+
+<script>
+/* ---- panel wiring ---- */
+(function () {
+  'use strict';
+  const active = JSON.parse(localStorage.getItem('slopf-harness-preset') || '{}');
+
+  document.querySelectorAll('#presets button').forEach((btn) => {
+    const presets = {
+      queue: { mode: 'queue' },
+      highlight: { mode: 'highlight' },
+      auto: { mode: 'auto', maxActionsPerHour: 2 }
+    };
+    const p = presets[btn.dataset.preset];
+    if (JSON.stringify(p.mode) === JSON.stringify(active.mode || 'queue') &&
+        (p.maxActionsPerHour || 15) === (active.maxActionsPerHour || 15)) {
+      btn.classList.add('on');
+    }
+    btn.addEventListener('click', () => {
+      localStorage.setItem('slopf-harness-preset', JSON.stringify(p));
+      location.reload();
+    });
+  });
+
+  let dyn = 0;
+  document.getElementById('add-tweet').addEventListener('click', () => {
+    dyn++;
+    const article = document.createElement('article');
+    article.setAttribute('data-testid', 'tweet');
+    article.innerHTML =
+      '<div data-testid="User-Name"><span>Late Slop</span><a href="/late_slop_' + dyn + '">@late_slop_' + dyn + '</a></div>' +
+      '<div data-testid="tweetText"></div>' +
+      '<a href="/late_slop_' + dyn + '/status/2' + dyn + '">permalink</a>';
+    article.querySelector('[data-testid="tweetText"]').textContent =
+      'This changes everything. Read that again.\n\n' +
+      '🔑 Leverage the power of AI\n✨ Unlock the seamless workflow\n🎯 Navigate the complexities\n\n' +
+      'Follow for more. Let that sink in.';
+    document.getElementById('feed').appendChild(article);
+  });
+
+  setInterval(() => {
+    document.getElementById('api-calls').textContent =
+      JSON.stringify(window.__apiCalls, null, 1);
+    const d = chrome.storage.local._data;
+    document.getElementById('storage-dump').textContent = JSON.stringify(
+      { stats: d.stats, settings: { mode: d.settings.mode, maxActionsPerHour: d.settings.maxActionsPerHour, allowlist: d.settings.allowlist }, queue: d.queue.map((q) => ({ handle: q.handle, score: q.score, tags: q.tags, source: q.source })), log: d.log.map((l) => ({ handle: l.handle, action: l.action, trigger: l.trigger, tags: l.tags })) },
+      null, 1
+    );
+  }, 500);
+})();
+</script>
+</body>
+</html>
