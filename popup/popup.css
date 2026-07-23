@@ -80,6 +80,26 @@ h1 {
   color: var(--accent);
 }
 
+.update-note {
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-radius: 8px;
+  background: rgba(216, 160, 26, 0.15);
+  color: #8b6b12;
+}
+
+@media (prefers-color-scheme: dark) {
+  .update-note {
+    color: #e8c46a;
+  }
+}
+
+.update-note a {
+  font-weight: 700;
+  color: inherit;
+}
+
 .tabs {
   display: flex;
   gap: 4px;

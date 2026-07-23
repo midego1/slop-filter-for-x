@@ -64,6 +64,8 @@
     status: $('status'),
     health: $('health'),
     healthText: $('health-text'),
+    updateNote: $('update-note'),
+    updateText: $('update-text'),
     tabButtons: [...document.querySelectorAll('nav.tabs button[data-tab]')]
   };
 
@@ -272,6 +274,29 @@
   function setHealth(state, text) {
     els.health.dataset.state = state; // 'ok' | 'bad' | 'off'
     els.healthText.textContent = text;
+  }
+
+  function isNewer(a, b) {
+    const pa = String(a).split('.').map(Number);
+    const pb = String(b).split('.').map(Number);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+      const x = pa[i] || 0;
+      const y = pb[i] || 0;
+      if (x !== y) return x > y;
+    }
+    return false;
+  }
+
+  function renderUpdateNote(info) {
+    // Compare against the popup's own runtime version — authoritative for
+    // "what am I running", even if the background cached an older check.
+    const current = chrome.runtime.getManifest().version;
+    if (!info || !info.latest || !isNewer(info.latest, current)) {
+      els.updateNote.hidden = true;
+      return;
+    }
+    els.updateText.textContent = `Update available: v${info.latest} (you run v${current}) — git pull, then ↻ the extension.`;
+    els.updateNote.hidden = false;
   }
 
   async function checkHealth() {
@@ -583,13 +608,14 @@
   }
 
   function loadAll() {
-    chrome.storage.local.get(['settings', 'stats', 'queue', 'log', 'listMeta'], (d) => {
+    chrome.storage.local.get(['settings', 'stats', 'queue', 'log', 'listMeta', 'updateInfo'], (d) => {
       state.settings = { ...DEFAULTS, ...(d.settings || {}) };
       state.stats = { ...STATS_DEFAULTS, ...(d.stats || {}) };
       state.queue = d.queue || [];
       state.log = d.log || [];
       state.listMeta = d.listMeta || {};
       renderAll();
+      renderUpdateNote(d.updateInfo);
     });
   }
 
@@ -614,6 +640,9 @@
     if (changes.listMeta) {
       state.listMeta = changes.listMeta.newValue || {};
       renderListStatus();
+    }
+    if (changes.updateInfo) {
+      renderUpdateNote(changes.updateInfo.newValue);
     }
   });
 

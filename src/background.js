@@ -62,15 +62,55 @@ async function refreshLists() {
   await chrome.storage.local.set({ listIndex: index, listMeta: meta });
 }
 
+/* ------------------------------------------------------------ update check */
+
+const REPO_MANIFEST = 'https://raw.githubusercontent.com/midego1/slop-filter-for-x/main/manifest.json';
+const UPDATE_CHECK_MINUTES = 720; // twice a day
+
+function isNewer(a, b) {
+  const pa = String(a).split('.').map(Number);
+  const pb = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i] || 0;
+    const y = pb[i] || 0;
+    if (x !== y) return x > y;
+  }
+  return false;
+}
+
+async function checkForUpdate() {
+  try {
+    const res = await fetch(REPO_MANIFEST, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const remote = await res.json();
+    const latest = String(remote.version || '');
+    if (!/^\d+(\.\d+)*$/.test(latest)) throw new Error('bad remote version');
+    const current = chrome.runtime.getManifest().version;
+    await chrome.storage.local.set({
+      updateInfo: { latest, current, updateAvailable: isNewer(latest, current), checkedAt: Date.now() }
+    });
+  } catch {
+    // Keep the last known info; never block anything on a failed check.
+  }
+}
+
+/* ----------------------------------------------------------------- wiring */
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create('slopf-refresh', { periodInMinutes: REFRESH_MINUTES, delayInMinutes: 1 });
+  chrome.alarms.create('slopf-update-check', { periodInMinutes: UPDATE_CHECK_MINUTES, delayInMinutes: 2 });
   refreshLists();
+  checkForUpdate();
 });
 
-chrome.runtime.onStartup.addListener(() => refreshLists());
+chrome.runtime.onStartup.addListener(() => {
+  refreshLists();
+  checkForUpdate();
+});
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'slopf-refresh') refreshLists();
+  if (alarm.name === 'slopf-update-check') checkForUpdate();
 });
 
 chrome.runtime.onMessage.addListener((msg, _sender, respond) => {
