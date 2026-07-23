@@ -1,89 +1,100 @@
+/* Slop Filter — floating chip UI. Nothing here alters X's layout: flagged
+   tweets get a thin edge line and an absolutely-positioned corner chip. */
+
 article[data-testid='tweet'].slopf-flagged {
   position: relative;
-  box-shadow: inset 3px 0 0 0 #d8a01a;
-  background: rgba(216, 160, 26, 0.05);
+}
+
+article[data-testid='tweet'].slopf-mild {
+  box-shadow: inset 2px 0 0 0 rgba(216, 160, 26, 0.7);
 }
 
 article[data-testid='tweet'].slopf-severe {
-  box-shadow: inset 3px 0 0 0 #e0245e;
-  background: rgba(224, 36, 94, 0.06);
+  box-shadow: inset 2px 0 0 0 rgba(224, 36, 94, 0.8);
+}
+
+article[data-testid='tweet'].slopf-listed {
+  box-shadow: inset 2px 0 0 0 rgba(120, 86, 255, 0.8);
 }
 
 article[data-testid='tweet'].slopf-acted {
   opacity: 0.45;
 }
 
-/* Community-list hits: purple, distinct from the detector's own verdicts. */
-article[data-testid='tweet'].slopf-listed {
-  box-shadow: inset 3px 0 0 0 #7856ff;
-  background: rgba(120, 86, 255, 0.06);
+/* --- corner chip ------------------------------------------------------- */
+
+.slopf-chip {
+  position: absolute;
+  top: 6px;
+  right: 44px; /* clear of X's ⋯ menu */
+  z-index: 20;
+  font: 500 11px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }
 
-.slopf-listed .slopf-badge {
-  color: #5b3df0;
-  background: rgba(120, 86, 255, 0.12);
-  border-bottom-color: rgba(120, 86, 255, 0.25);
-}
-
-@media (prefers-color-scheme: dark) {
-  .slopf-listed .slopf-badge {
-    color: #a793ff;
-  }
-}
-
-.slopf-badge {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  font: 500 12px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  color: #8b6b12;
-  background: rgba(216, 160, 26, 0.12);
-  border-bottom: 1px solid rgba(216, 160, 26, 0.25);
-  cursor: default;
-}
-
-.slopf-severe .slopf-badge {
-  color: #b3123f;
-  background: rgba(224, 36, 94, 0.12);
-  border-bottom-color: rgba(224, 36, 94, 0.25);
-}
-
-.slopf-score {
-  padding: 1px 7px;
+.slopf-pill {
+  padding: 1px 8px;
+  border: 0;
   border-radius: 999px;
-  font-weight: 700;
+  font: 600 11px/1.6 inherit;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
-  background: currentColor;
   color: #fff;
-  mix-blend-mode: normal;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 120ms;
 }
 
-.slopf-severe .slopf-score,
-.slopf-flagged .slopf-score {
-  color: #fff;
+.slopf-pill:hover,
+.slopf-open .slopf-pill {
+  opacity: 1;
+}
+
+.slopf-mild .slopf-pill {
+  background: rgba(180, 132, 20, 0.9);
+}
+
+.slopf-severe .slopf-pill {
+  background: rgba(224, 36, 94, 0.9);
+}
+
+.slopf-listed .slopf-pill {
+  background: rgba(120, 86, 255, 0.9);
+}
+
+/* --- expanded card ------------------------------------------------------ */
+
+.slopf-card {
+  display: none;
+  position: absolute;
+  top: 26px;
+  right: 0;
+  width: 250px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #1a2129;
+  color: #e7ecf0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.slopf-open .slopf-card {
+  display: block;
 }
 
 .slopf-why {
-  flex: 1 1 220px;
-  opacity: 0.9;
-}
-
-.slopf-why b {
-  font-weight: 700;
+  margin-bottom: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #aeb9c2;
 }
 
 .slopf-actions {
   display: flex;
   gap: 6px;
-  margin-left: auto;
 }
 
 .slopf-actions button {
   padding: 3px 10px;
-  font: 600 12px/1.4 inherit;
+  font: 600 11px/1.5 inherit;
   color: #fff;
   background: #b3123f;
   border: 0;
@@ -97,31 +108,22 @@ article[data-testid='tweet'].slopf-listed {
 }
 
 .slopf-actions button.slopf-secondary {
-  color: inherit;
+  color: #aeb9c2;
   background: transparent;
-  border: 1px solid currentColor;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-/* Collapsed view: keep the badge, hide the post itself. */
-.slopf-collapsed > div:not(.slopf-badge) {
+/* --- collapse mode ------------------------------------------------------ */
+
+article[data-testid='tweet'].slopf-collapsed {
+  min-height: 34px;
+  overflow: hidden;
+}
+
+article[data-testid='tweet'].slopf-collapsed > div {
   display: none;
 }
 
-.slopf-collapsed .slopf-badge {
-  cursor: pointer;
-}
-
-.slopf-collapsed .slopf-badge::after {
-  content: 'click to reveal';
-  opacity: 0.65;
-  font-style: italic;
-}
-
-@media (prefers-color-scheme: dark) {
-  .slopf-badge {
-    color: #e8c46a;
-  }
-  .slopf-severe .slopf-badge {
-    color: #ff6b96;
-  }
+article[data-testid='tweet'].slopf-collapsed .slopf-chip {
+  display: block;
 }

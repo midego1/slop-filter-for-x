@@ -140,26 +140,48 @@
 
   /* --------------------------------------------------------------------- ui */
 
+  // Floating corner chip: absolutely positioned so X's flex layout is never
+  // disturbed. Collapsed to a small pill; click to expand reasons + actions.
   function decorate(article, tweet, result) {
     article.classList.add('slopf-flagged');
     article.dataset.slopfScore = String(result.score);
-    if (result.listed) article.classList.add('slopf-listed');
-    else if (result.score >= settings.actionThreshold) article.classList.add('slopf-severe');
+    const severity = result.listed
+      ? 'listed'
+      : result.score >= settings.actionThreshold
+        ? 'severe'
+        : 'mild';
+    article.classList.add('slopf-' + severity);
 
-    const badge = document.createElement('div');
-    badge.className = 'slopf-badge';
-    badge.innerHTML = `
-      <span class="slopf-score">slop ${result.score}</span>
-      <span class="slopf-why">${result.reasons
-        .slice(0, 4)
-        .map((r) => `${escapeHtml(r.label)} <b>+${r.points}</b>`)
-        .join(' · ')}</span>
-    `;
+    const chip = document.createElement('div');
+    chip.className = 'slopf-chip';
+
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'slopf-pill';
+    pill.textContent = result.listed ? '✦ listed' : `✦ ${result.score}`;
+    pill.title = 'Flagged by Slop Filter — click for details';
+    pill.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      article.classList.remove('slopf-collapsed');
+      chip.classList.toggle('slopf-open');
+    };
+
+    const card = document.createElement('div');
+    card.className = 'slopf-card';
+
+    const why = document.createElement('div');
+    why.className = 'slopf-why';
+    why.textContent = result.reasons
+      .slice(0, 4)
+      .map((r) => (r.points ? `${r.label} +${r.points}` : r.label))
+      .join(' · ');
 
     const actions = document.createElement('div');
     actions.className = 'slopf-actions';
 
     const act = document.createElement('button');
+    act.type = 'button';
     act.textContent = settings.action === 'mute' ? `Mute @${tweet.handle}` : `Block @${tweet.handle}`;
     act.onclick = async (e) => {
       e.stopPropagation();
@@ -177,29 +199,25 @@
     };
 
     const ignore = document.createElement('button');
+    ignore.type = 'button';
     ignore.className = 'slopf-secondary';
     ignore.textContent = 'Not slop';
     ignore.onclick = (e) => {
       e.stopPropagation();
       e.preventDefault();
       allow(tweet.handle);
-      article.classList.remove('slopf-flagged', 'slopf-severe', 'slopf-collapsed');
-      badge.remove();
-      actions.remove();
+      article.classList.remove('slopf-flagged', 'slopf-severe', 'slopf-mild', 'slopf-listed', 'slopf-collapsed');
+      chip.remove();
     };
 
     actions.append(act, ignore);
-    badge.append(actions);
-    article.prepend(badge);
+    card.append(why, actions);
+    chip.append(pill, card);
+    article.append(chip);
 
-    if (settings.collapse && result.score >= settings.actionThreshold) {
+    if (settings.collapse && severity === 'severe') {
       article.classList.add('slopf-collapsed');
-      badge.addEventListener('click', () => article.classList.remove('slopf-collapsed'));
     }
-  }
-
-  function escapeHtml(s) {
-    return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   }
 
   function allow(handle) {
@@ -341,10 +359,10 @@
   }
 
   function rescan() {
-    document.querySelectorAll('.slopf-badge').forEach((b) => b.remove());
+    document.querySelectorAll('.slopf-chip').forEach((b) => b.remove());
     document
       .querySelectorAll('.slopf-flagged')
-      .forEach((a) => a.classList.remove('slopf-flagged', 'slopf-severe', 'slopf-collapsed', 'slopf-listed'));
+      .forEach((a) => a.classList.remove('slopf-flagged', 'slopf-severe', 'slopf-mild', 'slopf-collapsed', 'slopf-listed'));
     document.querySelectorAll('article[data-testid="tweet"]').forEach((a) => {
       seen.delete(a);
       process(a);
