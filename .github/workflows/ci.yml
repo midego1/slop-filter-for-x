@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Detector heuristics
+        run: node test/detector.test.js
+      - name: Merge tool
+        run: node test/merge.test.js
+      - name: Validate submitted exports
+        run: node tools/validate-exports.js
+      - name: Syntax-check extension sources
+        run: |
+          for f in src/*.js popup/popup.js tools/*.js; do node --check "$f"; done
+          python3 -c "import json; json.load(open('manifest.json'))"
+
+  publish-list:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Regenerate master-list.json
+        run: |
+          shopt -s nullglob
+          files=(exports/*.json)
+          if [ ${#files[@]} -gt 0 ]; then
+            node tools/merge-lists.js --min-reporters 2 --appeals appeals.json \
+              --name "slop-filter-for-x community list" --out master-list.json "${files[@]}"
+          else
+            echo "no exports yet - keeping seed master-list.json"
+          fi
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet master-list.json; then
+            git add master-list.json
+            git commit -m "chore: regenerate master-list.json"
+            git push
+          else
+            echo "master-list.json unchanged"
+          fi

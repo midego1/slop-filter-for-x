@@ -1,0 +1,4 @@
+{
+  "comment": "Handles cleared on appeal. Add via PR, referencing the appeal issue. The merge tool removes these from master-list.json on the next CI run.",
+  "handles": []
+}

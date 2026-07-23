@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>Slop Filter</title>
+  </head>
+  <body>
+    <header>
+      <h1>Slop Filter</h1>
+      <label class="switch">
+        <input type="checkbox" id="enabled" />
+        <span>On</span>
+      </label>
+    </header>
+
+    <nav class="tabs">
+      <button data-tab="settings" class="active">Settings</button>
+      <button data-tab="queue">Queue <span id="queue-count" class="pill">0</span></button>
+      <button data-tab="log">History</button>
+    </nav>
+
+    <section id="tab-settings" class="tab">
+      <div class="stats">
+        <div><b id="stat-scanned">0</b><span>scanned</span></div>
+        <div><b id="stat-flagged">0</b><span>flagged</span></div>
+        <div><b id="stat-acted">0</b><span>acted on</span></div>
+      </div>
+
+      <label class="field">
+        <span>What to do above the action threshold</span>
+        <select id="mode">
+          <option value="highlight">Highlight only</option>
+          <option value="queue">Queue for my review</option>
+          <option value="auto">Act automatically</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Action</span>
+        <select id="action">
+          <option value="block">Block</option>
+          <option value="mute">Mute (reversible, quieter)</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Highlight at <b id="hl-val">40</b></span>
+        <input type="range" id="highlightThreshold" min="10" max="100" step="5" />
+      </label>
+
+      <label class="field">
+        <span>Act at <b id="ac-val">65</b></span>
+        <input type="range" id="actionThreshold" min="20" max="100" step="5" />
+      </label>
+
+      <label class="field">
+        <span>Max actions per hour <b id="rl-val">15</b></span>
+        <input type="range" id="maxActionsPerHour" min="1" max="60" step="1" />
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="collapse" />
+        <span>Collapse posts above the action threshold</span>
+      </label>
+
+      <div class="field">
+        <span>Never flag these handles</span>
+        <textarea id="allowlist" rows="3" placeholder="one handle per line"></textarea>
+      </div>
+
+      <p class="note" id="auto-note" hidden>
+        Auto mode blocks accounts without asking. Start in queue mode for a day
+        and check the false positives before you turn this on.
+      </p>
+
+      <h2 class="subhead">Community lists</h2>
+
+      <label class="field">
+        <span>When an account is on a subscribed list</span>
+        <select id="listMode">
+          <option value="highlight">Highlight only</option>
+          <option value="queue">Queue for my review</option>
+          <option value="auto">Act automatically</option>
+        </select>
+      </label>
+
+      <div class="field">
+        <span>Subscribed lists (GitHub raw / gist / pages URLs, one per line)</span>
+        <textarea id="listUrls" rows="3" placeholder="https://raw.githubusercontent.com/&hellip;/master-list.json"></textarea>
+      </div>
+
+      <div class="bulk">
+        <button id="refresh-lists" class="secondary">Refresh lists</button>
+      </div>
+      <p class="note-inline" id="list-status"></p>
+    </section>
+
+    <section id="tab-queue" class="tab" hidden>
+      <div class="bulk">
+        <button id="queue-all">Act on all</button>
+        <button id="queue-clear" class="secondary">Clear</button>
+      </div>
+      <ul id="queue-list" class="list"></ul>
+      <p class="empty" id="queue-empty">Nothing queued.</p>
+    </section>
+
+    <section id="tab-log" class="tab" hidden>
+      <div class="bulk">
+        <button id="export-list">Export my list (JSON)</button>
+      </div>
+      <ul id="log-list" class="list"></ul>
+      <p class="empty" id="log-empty">Nothing yet.</p>
+    </section>
+
+    <p class="status" id="status"></p>
+    <script src="../src/tags.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
