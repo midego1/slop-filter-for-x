@@ -218,6 +218,7 @@
       e.preventDefault();
       allow(tweet.handle);
       article.classList.remove('slopf-flagged', 'slopf-severe', 'slopf-mild', 'slopf-listed', 'slopf-collapsed');
+      article.querySelector('.slopf-edge')?.remove();
       chip.remove();
     };
 
@@ -228,6 +229,14 @@
     // Anchored top-right, left of X's Grok/⋯ icons — a fixed zone in every
     // tweet variant, and absolute positioning never disturbs X's layout.
     article.append(chip);
+
+    // Edge line as a real element in the same top layer as the chip — X's
+    // hover background repaints over article-level box-shadows and
+    // pseudo-elements, but not over this.
+    const edge = document.createElement('span');
+    edge.className = 'slopf-edge';
+    article.append(edge);
+
     if (settings.collapse && severity === 'severe') {
       article.classList.add('slopf-collapsed');
     }
@@ -379,7 +388,7 @@
   }
 
   function rescan() {
-    document.querySelectorAll('.slopf-chip').forEach((b) => b.remove());
+    document.querySelectorAll('.slopf-chip, .slopf-edge').forEach((b) => b.remove());
     document
       .querySelectorAll('.slopf-flagged')
       .forEach((a) => a.classList.remove('slopf-flagged', 'slopf-severe', 'slopf-mild', 'slopf-collapsed', 'slopf-listed'));

@@ -5,28 +5,28 @@ article[data-testid='tweet'].slopf-flagged {
   position: relative;
 }
 
-/* Edge line as an overlay pseudo-element so X's hover background (painted
-   by a child div) can't cover it. */
-article[data-testid='tweet'].slopf-flagged::before {
-  content: '';
+/* Edge line: a real overlay element in the same layer as the chip, with a
+   z-index no tweet-internal element reaches. X's hover background paints
+   over article box-shadows and pseudo-elements, but not over this. */
+.slopf-edge {
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
   width: 2px;
-  z-index: 15;
+  z-index: 2147483640;
   pointer-events: none;
 }
 
-article[data-testid='tweet'].slopf-mild::before {
+article[data-testid='tweet'].slopf-mild .slopf-edge {
   background: rgba(216, 160, 26, 0.7);
 }
 
-article[data-testid='tweet'].slopf-severe::before {
+article[data-testid='tweet'].slopf-severe .slopf-edge {
   background: rgba(224, 36, 94, 0.8);
 }
 
-article[data-testid='tweet'].slopf-listed::before {
+article[data-testid='tweet'].slopf-listed .slopf-edge {
   background: rgba(120, 86, 255, 0.8);
 }
 
